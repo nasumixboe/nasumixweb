@@ -1399,7 +1399,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         navigator.bluetooth.requestDevice({
           filters: [{
             // 固有のサービス UUID でフィルタリング
-            services: ['d3323800-6784-4e17-aad2-c65c52b8cbd8'],
+            services: ['7949b022-980c-a397-2d44-2aac28d8c548'],
             // メーカー固有データでフィルタリング（例: companyIdentifier=6, データプレフィックス "RT0"）
             manufacturerData: [{
               companyIdentifier: 6,
