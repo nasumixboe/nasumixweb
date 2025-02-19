@@ -1344,7 +1344,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         // BLE 接続用のデバイス定義
         device: {
           id: 'iRobotRootBLE',
-          bluetoothService: '48c5d828-ac2a-442d-97a3-0c9822b04979'
+          // Scratch Link 側のフィルタは固有のサービス UUID を利用
+          bluetoothService: 'd3323800-6784-4e17-aad2-c65c52b8cbd8'
         },
         blocks: [{
           opcode: 'connect',
@@ -1396,15 +1397,19 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return new Promise(function (resolve, reject) {
         // まずは Web Bluetooth API を用いてユーザーにデバイス選択ダイアログを表示する
         navigator.bluetooth.requestDevice({
-          // ※ 適切なフィルタ条件に変更してください。ここでは例として、名前が "RT" で始まるデバイスを対象とする
           filters: [{
-            namePrefix: 'RT'
+            // 固有のサービス UUID でフィルタリング
+            services: ['d3323800-6784-4e17-aad2-c65c52b8cbd8'],
+            // メーカー固有データでフィルタリング（例: companyIdentifier=6, データプレフィックス "RT0"）
+            manufacturerData: [{
+              companyIdentifier: 6,
+              dataPrefix: new Uint8Array([0x52, 0x54, 0x30])
+            }]
           }],
-          // 必要なサービス（Root Identifier, Device Information, UART）を指定
-          optionalServices: ['48c5d828-ac2a-442d-97a3-0c9822b04979', '0000180a-0000-1000-8000-00805f9b34fb', '6e400001-b5a3-f393-e0a9-e50e24dcca9e']
+          optionalServices: ['d3323800-6784-4e17-aad2-c65c52b8cbd8', '0000180a-0000-1000-8000-00805f9b34fb', '6e400001-b5a3-f393-e0a9-e50e24dcca9e']
         }).then(function (device) {
           console.log('Web Bluetooth device selected:', device);
-          // GATTサーバーに接続しておく（必須ではありませんが接続確認に利用可能）
+          // GATTサーバーに接続（必須ではありませんが接続確認に利用可能）
           return device.gatt.connect();
         }).then(function (server) {
           console.log('GATT server connected:', server);
