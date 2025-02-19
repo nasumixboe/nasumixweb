@@ -1672,7 +1672,7 @@ var EXTENSION_ID = 'iRobotExtension';
  * When loaded as a module, 'extensionURL' will be replaced with the URL from which it was retrieved.
  * @type {string}
  */
-var extensionURL = 'https://naominix.github.io/iRobotExtension.mjs';
+var extensionURL = 'https://nasumixboe.github.io/nasumixweb/iRobotExtension.mjs';
 
 /**
  * Combined Scratch 3.0 extension that integrates two sets of blocks.
