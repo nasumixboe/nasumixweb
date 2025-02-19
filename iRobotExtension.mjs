@@ -1305,7 +1305,7 @@ var EXTENSION_ID = 'iRobotExtension';
 var extensionURL = 'https://nasumixboe.github.io/nasumixweb/iRobotExtension.mjs';
 
 /**
- * Xcratch ブロック拡張機能クラス（iRobot Root BLE 接続版）
+ * Xcratch ブロック拡張機能クラス（iRobot Root rt0 BLE 接続版）
  */
 var ExtensionBlocks = /*#__PURE__*/function () {
   /**
@@ -1386,7 +1386,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     }
 
     /**
-     * connect ブロックの処理: iRobot Root に接続を試みる
+     * connect ブロックの処理: Web Bluetooth と Scratch Link の両方で iRobot Root rt0 に接続を試みる
      * @returns {Promise} - 接続成功時に解決する Promise
      */
   }, {
@@ -1394,17 +1394,25 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function connect() {
       var _this = this;
       return new Promise(function (resolve, reject) {
-        // 既に接続済みの場合はそのまま resolve
-        if (_this._device) {
-          resolve();
-          return;
-        }
-        // デバイス接続のリクエスト（BLE 用 Root Identifier サービス UUID に基づく）
-        _this.runtime.ioDevices.openDevice('iRobotRootBLE').then(function (device) {
-          _this._device = device;
-          console.log('iRobot Root connected:', device);
-
-          // ※ 必要に応じて、UART TX キャラクタリスティックへの購読などの初期化処理を追加可能です。
+        // まずは Web Bluetooth API を用いてユーザーにデバイス選択ダイアログを表示する
+        navigator.bluetooth.requestDevice({
+          // ※ 適切なフィルタ条件に変更してください。ここでは例として、名前が "RT" で始まるデバイスを対象とする
+          filters: [{
+            namePrefix: 'RT'
+          }],
+          // 必要なサービス（Root Identifier, Device Information, UART）を指定
+          optionalServices: ['48c5d828-ac2a-442d-97a3-0c9822b04979', '0000180a-0000-1000-8000-00805f9b34fb', '6e400001-b5a3-f393-e0a9-e50e24dcca9e']
+        }).then(function (device) {
+          console.log('Web Bluetooth device selected:', device);
+          // GATTサーバーに接続しておく（必須ではありませんが接続確認に利用可能）
+          return device.gatt.connect();
+        }).then(function (server) {
+          console.log('GATT server connected:', server);
+          // Web Bluetooth 経由で接続できたので、次に Scratch Link 経由の接続を試みる
+          return _this.runtime.ioDevices.openDevice('iRobotRootBLE');
+        }).then(function (scratchLinkDevice) {
+          _this._device = scratchLinkDevice;
+          console.log('Scratch Link connected device:', scratchLinkDevice);
           resolve();
         }).catch(function (error) {
           console.error('Failed to connect to iRobot Root:', error);
